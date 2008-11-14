@@ -119,3 +119,56 @@ h2. Procedures.
 Skime has another class that reflects Scheme language
 constructs. The very core of Scheme, a procedure,
 is implemented as a Procedure instance.
+
+h2. Example.
+
+Consider the following Scheme code:
+
+(begin
+  (define a (* 99 11))
+  (define b (+ 29 33))
+  (+ a b))
+
+If we trace bytecode of the whole program, it looks like this
+array('i',
+[9, 0,
+9, 1,
+5, 2,
+1, 2,
+6, 72,
+9, 2,
+9, 3,
+5, 0,
+1, 2,
+6, 73,
+5, 72,
+5, 73,
+5, 0,
+1, 2])
+
+Here is disassembled version:
+
+============================================================
+Diasassemble of form at B7CF24AC
+literals:
+   0: 99
+   1: 11
+   2: 29
+   3: 33
+
+instructions:
+--------------------------------------------------
+0000         push_literal literal=0
+0002         push_literal literal=1
+0004           push_local idx: 2, name: *
+0006                 call argc=2
+0008            set_local idx: 72, name: a
+000A         push_literal literal=2
+000C         push_literal literal=3
+000E           push_local idx: 0, name: +
+0010                 call argc=2
+0012            set_local idx: 73, name: b
+0014           push_local idx: 72, name: a
+0016           push_local idx: 73, name: b
+0018           push_local idx: 0, name: +
+001A                 call argc=2
