@@ -1,6 +1,16 @@
 from .prim import load_primitives
 
 class Context(object):
+    """
+    Context of execution. Every procedure call
+    (except for those using tail recursion) create
+    a context instance.
+
+    Context holds method environment, caller (parent
+    context), bytecode to execute and a stack. Stack
+    operations are usually performed on the context
+    instance.
+    """
     def __init__(self, form, env, parent=None):
         self.form = form
         self.env = env
