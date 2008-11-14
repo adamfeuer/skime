@@ -10,7 +10,10 @@ def gen_tags(tags):
 def gen_actions(instructions):
     def gen_action(insn):
         func = "def op_%s(ctx):\n" % insn['name']
-
+        doc = "\"\"\"\n" + insn["desc"] + "\n\n" + \
+              "stack before: " + str(insn["stack_before"]) + "\n" + \
+              "stack after : " + str(insn["stack_after"])  + "\n" + \
+              "\"\"\"\n"
         env = {
             'insn_len' : 1 + len(insn['operands'])
             }
@@ -21,7 +24,7 @@ def gen_actions(instructions):
         code = process_tmpl(code, env)
         code = re.sub(re.compile('^', re.MULTILINE), '    ', code)
         
-        return func + code
+        return func + doc + code
 
     return '\n'.join([gen_action(insn)
                       for insn in instructions])
