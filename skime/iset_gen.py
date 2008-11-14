@@ -10,10 +10,13 @@ def gen_tags(tags):
 def gen_actions(instructions):
     def gen_action(insn):
         func = "def op_%s(ctx):\n" % insn['name']
-        doc = "\"\"\"\n" + insn["desc"] + "\n\n" + \
-              "stack before: " + str(insn["stack_before"]) + "\n" + \
-              "stack after : " + str(insn["stack_after"])  + "\n" + \
-              "\"\"\"\n"
+        doclist = [
+            "    \"\"\"",
+            insn["desc"],
+            "stack before: " + str(insn["stack_before"]),
+            "stack after: "  + str(insn["stack_after"]),
+            "\"\"\"\n"
+            ]
         env = {
             'insn_len' : 1 + len(insn['operands'])
             }
@@ -24,7 +27,7 @@ def gen_actions(instructions):
         code = process_tmpl(code, env)
         code = re.sub(re.compile('^', re.MULTILINE), '    ', code)
         
-        return func + doc + code
+        return func + "\n    ".join(doclist) + code
 
     return '\n'.join([gen_action(insn)
                       for insn in instructions])
@@ -100,6 +103,7 @@ def has_tag(opcode, tag):
     return INSN_TAGS[opcode] & tag == tag
 
 def get_param(ctx, n):
+    "Returns Nth parameter by looking up Nth bytecode from current IP position."
     return ctx.bytecode[ctx.ip+n]
 
 def run(ctx):

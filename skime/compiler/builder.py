@@ -99,6 +99,9 @@ class Builder(object):
         """\
         Emit an instruction to push or set local variable. The local variable
         is automatically searched in the current context and parents.
+
+        This function causes execution of another instruction
+        with dynamically generated name.
         """
         if dyn_env is None:
             env = self.env
@@ -107,7 +110,9 @@ class Builder(object):
             env = dyn_env
             dyn = "dynamic_"
 
+        # get nesting and index of local variable
         depth, idx = self.find_local_depth(name, env)
+        # no nesting means variable is undefined
         if depth is None:
             raise UnboundVariable(name, "Unbound variable %s" % name)
         if depth == 0:
