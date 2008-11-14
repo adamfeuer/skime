@@ -97,6 +97,23 @@ that can be used by the primitive. Actually the only
 use of VM instance in Skime primitives is to do
 evaluation where necessary.
 
+h2. Scheme types.
+
+Scheme types list and symbol are implemented in Python
+as Pair and Symbol classes. Since Scheme is a functional
+language and in functional languages list comprehensions
+often use notion of tail and head, and because car and
+cdr are functions you cannot imagine Scheme without,
+Python list is not exactly what we need.
+
+Pair in Skime stores head element and a reference to
+list tail. For instance, a Scheme list (1 2 3) is
+built as 3 nested Python pairs:
+
+pair(1, pair(2, pair(3, None))))
+
+This makes car and cdr implementation trivial.
+
 h2. Procedures.
 
 Skime has another class that reflects Scheme language
