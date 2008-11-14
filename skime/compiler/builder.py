@@ -156,6 +156,7 @@ class Builder(object):
         """\
         Generate a form with emitted instructions.
         """
+        # bc is for bytecodes
         bc = array('i')
         for insn_name, args in self.stream:
             # pseudo instructions
