@@ -1,1 +1,104 @@
+h1. What skime is.
+
 skime is a Scheme implementation written in Python.
+
+h2. Overview.
+
+skime consists of 2 major parts: one produces bytecode and
+other executes it. First on is obviously a classic combo of lexer,
+parser and compiler, and the second one is virtual machine with
+it's own small instruction set.
+
+Skime produces bytecode on-the-fly, when Scheme source code is
+evaluated. Parser and compiler both act as aggregated components
+for a VM.
+
+h2. Lexical scopes and variable tables.
+
+Scheme source code consists of multiple nested lexical scopes.
+Each lexical scope is represented with an instance of
+Environment class. Environment is connected with
+a parent lexical scope in the code and stores local
+variables of it's scope. Names and
+values of local variables are stored separately in
+arrays and addressed by indexes. Environment maps
+variable index to variable name so it's always possible
+to get a value of a variable by name.
+
+Environment handles access to variables: assignments,
+reading, allocation. Allocation simply means creating a
+slot for a variable with initial value of undefined.
+
+Undefined represented in Python code with instances of
+Undef class.
+
+To get location of a variable Location instances are
+used. Location stores environment and index in variables
+table. Location objects are comparable.
+
+Since variables from the outer scope are available to
+inner scope, Environment is capable of looking up
+location recursively towards root scope.
+
+h2. Execution context.
+
+For function execution Skime uses an abstraction
+called Context that ties a form (result of compiling
+an expression into bytecode), an environment
+and a parent context. Each context has a stack
+and instruction pointer (ip). Context provides
+an interface for stack operation: pushing, popping,
+popping many, inserting many, getting value from
+the top of the stack and so forth.
+
+Now lets have a look at the form object. Form
+stores an environment this form was compiled in,
+and a bytecode sequence. Form can be either
+disassembled (turned into some string representation)
+or evaluated. Evaluation needs an environment
+(local variables table) and a root context (usually
+taken from VM instance).
+
+h2. Primitives.
+
+Obviously not everything is written in Scheme. Some
+basic functions come from the Python land and thus
+called primitives. Primitives are wrappers around
+Python's callables that know it's arity and Python
+function to call to do actual execution.
+
+Primitives are stored in top-level environment
+(environment of the VM instance) as PyPrimitive
+(or PyCallable) instances. Arity is a tuple of 2,
+where first value means minimal number of
+argiments and second value means maximum number of
+arguments. -1 means "no limit".
+
+Exception handling for type errors in primitives
+implemented as a decorator type_error_decorator
+that catches Python's TypeError and raises
+Skime's WrongArgType with the same message.
+
+Here are primitives that back + and * in Scheme:
+
+@type_error_decorator
+def plus(vm, *args):
+    return sum(args)
+
+@type_error_decorator
+def mul(vm, *args):
+    res = 1
+    for x in args:
+        res *= x
+    return res
+
+First argument all primitives take is a VM instance
+that can be used by the primitive. Actually the only
+use of VM instance in Skime primitives is to do
+evaluation where necessary.
+
+h2. Procedures.
+
+Skime has another class that reflects Scheme language
+constructs. The very core of Scheme, a procedure,
+is implemented as a Procedure instance.

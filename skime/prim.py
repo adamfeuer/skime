@@ -161,10 +161,12 @@ def type_error_decorator(meth):
 
 @type_error_decorator
 def plus(vm, *args):
+    "Implementation of +"
     return sum(args)
 
 @type_error_decorator
 def mul(vm, *args):
+    "Implementation of *"
     res = 1
     for x in args:
         res *= x
@@ -172,6 +174,7 @@ def mul(vm, *args):
 
 @type_error_decorator
 def minus(vm, num, *args):
+    "Implementation of -"
     if len(args) == 0:
         return -num
     for x in args:
@@ -180,6 +183,7 @@ def minus(vm, num, *args):
 
 @type_error_decorator
 def div(vm, num, *args):
+    "Implementation of /"
     if len(args) == 0:
         return 1.0/num
     if isinstance(num, (int, long)):
@@ -189,6 +193,7 @@ def div(vm, num, *args):
     return num
 
 def equal(vm, *args):
+    "Implementation of ="
     if len(args) < 2:
         return True
     a = args[0]
@@ -204,6 +209,7 @@ def equal(vm, *args):
     return True
 
 def less(vm, a, b, *args):
+    "Implementation of <"
     if a >= b:
         return False
     for x in args:
@@ -213,6 +219,7 @@ def less(vm, a, b, *args):
     return True
 
 def more(vm, a, b, *args):
+    "Implementation of >"
     if a <= b:
         return False
     for x in args:
@@ -222,6 +229,7 @@ def more(vm, a, b, *args):
     return True
 
 def less_equal(vm, a, b, *args):
+    "Implementation of <="
     if a > b:
         return False
     for x in args:
@@ -231,6 +239,7 @@ def less_equal(vm, a, b, *args):
     return True
 
 def more_equal(vm, a, b, *args):
+    "Implementation of >="
     if a < b:
         return False
     for x in args:
@@ -240,27 +249,35 @@ def more_equal(vm, a, b, *args):
     return True
 
 def prim_positive_p(vm, arg):
+    "Implementation of positive?"
     type_check(arg, (int, long, float))
     return arg > 0
 def prim_negative_p(vm, arg):
+    "Implementation of negative?"
     type_check(arg, (int, long, float))
     return arg < 0
 def prim_odd_p(vm, arg):
+    "Implementation of odd?"
     type_check(arg, (int, long))
     return arg % 2 != 0
 def prim_even_p(vm, arg):
+    "Implementation of even?"
     type_check(arg, (int, long))
     return arg % 2 == 0
 def prim_max(vm, *args):
+    "Implementation of max"
     return max(args)
 def prim_min(vm, *args):
+    "Implementation of min"
     return min(args)
 def prim_quotient(vm, a, b):
+    "Implementation of quotient"
     type_check(a, (int, long))
     type_check(b, (int, long))
     return a/b
 # remainder has the same sign as b
 def prim_remainder(vm, a, b):
+    "Implementation of remainder"
     type_check(a, (int, long))
     type_check(b, (int, long))
     if a > 0:
@@ -268,18 +285,22 @@ def prim_remainder(vm, a, b):
     return (-a)%(-b)
 # modulo has the same sign as a
 def prim_modulo(vm, a, b):
+    "Implementation of modulo"
     type_check(a, (int, long))
     type_check(b, (int, long))
     return a%b
 
 
 def gcd(a, b):
+    "Calculates greatest common denominator"
     while b != 0:
         b, a = a % b, b
     return a
 def lcm(a, b):
+    "Calculates least common modulo"
     return a*b/gcd(a, b)
 def prim_gcd(vm, *args):
+    "Implementation of gcd, greatest common denominator"    
     if args is None:
         return 0
     if len(args) == 1:
@@ -294,6 +315,7 @@ def prim_gcd(vm, *args):
     return abs(g)
     
 def prim_lcm(vm, *args):
+    "Implementation of lcd, least common modulo"
     if args is None:
         return 1
     if len(args) == 1:
@@ -310,49 +332,61 @@ def prim_lcm(vm, *args):
     
 @type_error_decorator
 def prim_floor(vm, a):
+    "Implementation of floor"
     return math.floor(a)
 @type_error_decorator
 def prim_ceiling(vm, a):
+    "Implementation of ceiling"
     return math.ceil(a)
 @type_error_decorator
 def prim_truncate(vm, a):
+    "Implementation of truncate"
     if a > 0:
         return math.floor(a)
     return math.ceil(a)
 @type_error_decorator
 def prim_round(vm, a):
+    "Implementation of round"
     return round(a)
 
 @type_error_decorator
 def prim_exp(vm, arg):
+    "Implementation of exp"
     return math.exp(arg)
 
 @type_error_decorator
 def prim_log(vm, arg):
+    "Implementation of log"
     return math.log(arg)
 
 @type_error_decorator
 def prim_sin(vm, arg):
+    "Implementation of sin"
     return math.sin(arg)
 
 @type_error_decorator
 def prim_cos(vm, arg):
+    "Implementation of cos"
     return math.cos(arg)
 
 @type_error_decorator
 def prim_tan(vm, arg):
+    "Implementation of tan"
     return math.tan(arg)
 
 @type_error_decorator
 def prim_asin(vm, arg):
+    "Implementation of asin"
     return math.asin(arg)
 
 @type_error_decorator
 def prim_acos(vm, arg):
+    "Implementation of acos"
     return math.acos(arg)
 
 @type_error_decorator
 def prim_atan(vm, arg, *arg2):
+    "Implementation of atan"
     if arg2 is None:
         return math.atan(arg)
     else:
@@ -360,37 +394,47 @@ def prim_atan(vm, arg, *arg2):
 
 @type_error_decorator
 def prim_sqrt(vm, arg):
+    "Implementation of sqrt"
     return math.sqrt(arg)
 
 @type_error_decorator
 def prim_expt(vm, a, b):
+    "Implementation of expt, aka power"
     return a ** b
 
 @type_error_decorator
 def prim_abs(vm, arg):
+    "Implementation of abs"
     return abs(arg)
 
 def prim_not(vm, arg):
+    "Implementation of not"
     if arg is False:
         return True
     return False
 
 def prim_first(vm, arg):
+    "Implementation of car"
     type_check(arg, pair)
     return arg.first
 def prim_rest(vm, arg):
+    "Implementation of cdr"
     type_check(arg, pair)
     return arg.rest
 def prim_pair(vm, a, b):
+    "Implementation of pair"
     return pair(a, b)
 def prim_set_first_x(vm, arg, val):
+    "Implementation of set_car! and set_first!"
     type_check(arg, pair)
     arg.first = val
 def prim_set_rest_x(vm, arg, val):
+    "Implementation of set_cdr! and set_rest!"
     type_check(arg, pair)
     arg.rest = val
 
 def prim_exact_p(vm, arg):
+    "Implementation of exact?"
     if isinstance(arg, (int, long)):
         return True
     # python complex are always inexact
@@ -398,17 +442,21 @@ def prim_exact_p(vm, arg):
         return False
     raise WrongArgType("Expecting a number, but got %s" % arg)
 def prim_inexact_p(vm, arg):
+    "Implementation of inexact?"
     return not prim_exact_p(vm, arg)
 
 def prim_zero_p(vm, arg):
+    "Implementation of zero?"
     type_check(arg, (int, long, complex, float))
     return arg == 0
     
 def prim_null_p(vm, arg):
+    "Implementation of null?"
     return arg is None
 
 # list?, detect circular list
 def prim_list_p(vm, val):
+    "Implementation of list?"
     obj1 = val
     obj2 = val
     while True:
@@ -540,6 +588,7 @@ def prim_eqv(vm, a, b):
 # Helper for primitives
 ########################################
 def make_type_predict(tt):
+    "Returns a function that checks argument to be instance of type tt"
     def predict(vm, obj):
         return isinstance(obj, tt)
     return predict

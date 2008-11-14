@@ -62,6 +62,7 @@ class TestPair(object):
         assert p('(1 2 3)') == pair(1, pair(2, pair(3, None)))
         assert p('(1)') == pair(1, None)
         assert p('()') == None
+        assert p('(1 2 3 4)') == pair(1, pair(2, pair(3, pair(4, None))))
 
     def test_pair(self):
         assert p('(1 . 2)') == pair(1, 2)

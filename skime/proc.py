@@ -16,7 +16,6 @@ class Procedure(object):
         # will be emitted in the instruction sequence to
         # fix the parent at run time.
         self.env = builder.env
-        
         self.bytecode = bytecode
 
         self.argc = len(builder.args)

@@ -9,33 +9,60 @@ from ..errors import UnboundVariable
 class Builder(object):
     "Builder is a helper of building the bytecode for a form."
     def __init__(self, env, result_t=Form):
-        # The lexical environment where the form is compiled
+        # The lexical scope where the form is compiled
         self.env = env
         # The type of the generate result
+        # By default it is a Form class
         self.result_t = result_t
 
-        # The instruction stream
+        # Instructions stream
         self.stream = []
-        # The program counter (instruction pointer)
+        # Program counter (instruction pointer)
         self.ip = 0
-        # The lable name => ip mapping
+        # Maps label names to instruction pointers
         self.labels = {}
-        # The literals
+        # Literals list
         self.literals = []
 
     def emit(self, insn_name, *args):
-        "Emit an instruction"
+        """
+        Emits an instruction.
+
+        Instructions emitted by the builder and appended
+        to the instructions stream with it's arguments
+        as a single tuple of 2: (instruction, arguments tuple).
+        """
+        # Get instruction by name
+        # from generated instructions map that looks
+        # like this:
+        #
+        # 'ret' : INSTRUCTIONS[0],
+        # 'call' : INSTRUCTIONS[1],
+        # 'tail_call' : INSTRUCTIONS[2],
+        # 'call_cc' : INSTRUCTIONS[3],
+        # 'pop' : INSTRUCTIONS[4]
+        #
+        # See generated iset.py, iset.yml
+        # and iset_gen.py.
         insn = INSN_MAP.get(insn_name)
+        # unknown instruction, should never happen
         if insn is None:
             raise TypeError, "No such instruction: %s" % insn_name
+        # check number of given arguments
+        # it always must be instruction name plus
+        # instructions arguments count
+        #
+        # if it isn't so, raise
         if insn.length != 1+len(args):
             raise TypeError, \
                   "INSTRUCTION %s expects %d parameters, but %d given" % \
                   (insn_name, insn.length-1, len(args))
 
+        # pick more specific push_* instruction
+        # based on argument type
         if insn_name == 'push_literal':
             lit = args[0]
-            # NOTE True == 1, False == 0 in Python, so "is True/False"
+            # True == 1, False == 0 in Python, so "is True/False"
             # test should be put before "== 0/1" test.
             if lit is True:
                 insn_name = 'push_true'
@@ -53,7 +80,9 @@ class Builder(object):
                 insn_name = 'push_nil'
                 args = ()
 
+        # append emitted instruction to the stream
         self.stream.append((insn_name, args))
+        # increment instruction pointer
         self.ip += len(args)+1
 
     def def_local(self, name):
