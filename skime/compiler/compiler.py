@@ -75,6 +75,10 @@ class Compiler(object):
         return False
         
     def next_label(self):
+        """
+        Returns next label name. Label
+        seed integer is incremented on every call
+        """
         self.label_seed += 1
         return "__lbl_%d" % self.label_seed
 
