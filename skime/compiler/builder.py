@@ -155,6 +155,21 @@ class Builder(object):
     def generate(self):
         """\
         Generate a form with emitted instructions.
+
+        Real instruction results in an optcode followed
+        by instruction arguments. Arguments vary depending
+        on instruction type but not much. There are 3
+        different cases:
+
+        1. goto* instructions that need a position argument
+        2. push_literal instruction needs a literal index in literals list
+        3. the rest of instructions needs list of arguments "as given"
+
+        since bytecode is a stream of integers, labels used by goto*
+        are replaced by actual ip positions.
+
+        This function returns an instance of Form or Procedure but
+        may return any other object that has attached bytecode.
         """
         # bc is for bytecodes
         bc = array('i')
