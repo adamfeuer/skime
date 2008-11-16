@@ -1,10 +1,10 @@
 from types          import NoneType
-                      
+
 from ..types.symbol import Symbol as sym
 from ..types.pair   import Pair as pair
 from ..macro        import Macro, DynamicClosure, SymbolClosure
 from ..form         import Form
-                     
+
 from ..errors       import CompileError
 from ..errors       import SyntaxError
 
@@ -32,7 +32,7 @@ class Compiler(object):
     sym_cond = sym("cond")
     sym_call_cc = sym("call/cc")
     sym_call_cc2 = sym("call-with-current-continuation")
-    
+
     def __init__(self):
         self.label_seed = 0
 
@@ -56,7 +56,7 @@ class Compiler(object):
             dist += 1
             descendant = descendant.parent
         return dist
-        
+
     def get_macro(self, env, name):
         if not isinstance(name, sym):
             return None
@@ -67,13 +67,13 @@ class Compiler(object):
         if isinstance(val, Macro):
             return val
         return None
-    
+
     def self_evaluating(self, expr):
         for t in [int, long, complex, float, str, unicode, bool, NoneType]:
             if isinstance(expr, t):
                 return True
         return False
-        
+
     def next_label(self):
         """
         Returns next label name. Label
@@ -128,7 +128,7 @@ class Compiler(object):
                 bdr.emit('push_literal', expr)
                 if tail:
                     bdr.emit('ret')
-        
+
         elif isinstance(expr, sym):
             if keep:
                 bdr.emit_local("push", expr.name)
@@ -172,7 +172,7 @@ class Compiler(object):
                         bdr.emit('pop')
                     elif tail:
                         bdr.emit('ret')
-                        
+
                 else:
                     arg  = expr.rest
                     while isinstance(arg, pair):
@@ -180,7 +180,7 @@ class Compiler(object):
                         arg = arg.rest
                         argc += 1
                     self.generate_expr(bdr, expr.first, keep=True, tail=False)
-                    
+
                     if tail:
                         bdr.emit('tail_call', argc)
                     else:
@@ -195,21 +195,24 @@ class Compiler(object):
                 bdr.emit('pop')
             elif tail:
                 bdr.emit('ret')
-            
+
         else:
             raise CompileError("Expecting atom or list, but got %s" % expr)
 
     def generate_if_expr(self, bdr, expr, keep=True, tail=False):
         """
-        Generates bytecode for if expression.
+        Generates a byte code for the "if" expression.
 
         To understand how it works consider the
         following Scheme code:
 
         (if (> 3 8) 10 14)
 
-        Results in the following instructions:
-        
+        The expression results in the following byte code:
+        array('i', [9, 0, 9, 1, 5, 6, 1, 2, 17, 14, 9, 2, 16, 16, 9, 3])
+
+        and `disasm` outputs the following:
+
         literals:
         0: 3
         1: 8
@@ -228,38 +231,38 @@ class Compiler(object):
         000E         push_literal literal=3
         0010         ...
 
-        If expression in this example has condition expression,
+        "If" expression in this example has the condition expression,
         "then" clause and "else" clause. It is turned into two
         jump instructions and three
-        instructions (or sequences instructions in more complex
-        cases), one for condition expression,
-        one for "then" clause and one for "else" clause.
+        instructions (or sequence instructions in more complex
+        cases), one for the condition expression,
+        one for the "then" clause and one for the "else" clause.
 
         In the example above condition expression is (> 3 8) which
-        results into instructions
+        results into the following instructions:
 
         0000         push_literal literal=0
         0002         push_literal literal=1
         0004           push_local idx: 6, name: >
         0006                 call argc=2
 
-        Then goto_if_not_false instruction is used to jump to "then"
-        clause if value on top of the stack (result of evaluating
-        of 
+        Then goto_if_not_false instruction is used to jump to the "then"
+        clause if the value on the top of the stack (the result of evaluating
+        of
 
         0008    goto_if_not_false ip=0x000E
 
-        jumps to instruction at 0x000E if value on top of the stack
+        jumps to the instruction at 0x000E if the value on the top of the stack
         is not false.
 
-        0x000E is the value of "then" clause that pushes 10 on top
+        0x000E is the value of the "then" clause that pushes 10 on top
         of the stack in this example:
 
         000E         push_literal literal=3
 
-        10 comes from 3rd literal in literals frame.
+        10 comes from the 3rd literal in the literals frame.
 
-        if jump at 0008 did not happen, instruction at
+        if the jump at 0008 does not happen, instruction at
         000A is executed:
 
         000A         push_literal literal=2
@@ -270,7 +273,7 @@ class Compiler(object):
         """
         if expr is None:
             raise SyntaxError("Missing condition expression in 'if'")
-            
+
         cond = expr.first
         expthen = expr.rest
         if expthen is None:
@@ -322,7 +325,7 @@ class Compiler(object):
         elif isinstance(expr, sym):
             return expr
         raise SyntaxError("Expecting symbol, but got %s" % expr)
-    
+
     def generate_lambda(self, base_builder, expr, keep=True, tail=False):
         if keep is not True:
             return  # lambda expression has no side-effect
@@ -350,7 +353,7 @@ class Compiler(object):
             bdr = base_builder.push_proc(args=args, rest_arg=rest_arg)
             self.generate_body(bdr, body, keep=True, tail=True)
             base_builder.emit("fix_lexical")
-            
+
             if tail:
                 base_builder.emit('ret')
 
@@ -390,7 +393,7 @@ class Compiler(object):
         self.generate_body(lambda_bdr, expr.rest, keep=True, tail=True)
         bdr.emit('fix_lexical')
 
-        argc = len(args) 
+        argc = len(args)
         if tail:
             bdr.emit('tail_call', argc)
         else:
@@ -401,7 +404,7 @@ class Compiler(object):
     def generate_letrec(self, bdr, expr, keep=True, tail=False):
         if not isinstance(expr, pair):
             raise SyntaxError("Invalid letrec expression")
-        
+
         bindings = expr.first
         body = expr.rest
 
@@ -410,7 +413,7 @@ class Compiler(object):
         # letrec will evaluate the init forms in the new env
         names = []
         vals = []
-        
+
         while isinstance(bindings, pair):
             binding = bindings.first
             if not isinstance(binding, pair) or \
@@ -425,7 +428,7 @@ class Compiler(object):
             vals.append(val)
 
             bindings = bindings.rest
-        
+
         if bindings is not None:
             raise SyntaxError("Invalid bindings for letrec expression: %s" % bindings)
 
@@ -446,7 +449,7 @@ class Compiler(object):
     def generate_letstar(self, bdr, expr, keep=True, tail=False):
         if not isinstance(expr, pair):
             raise SyntaxError("Invalid letrec expression")
-        
+
         bindings = expr.first
         body = expr.rest
 
@@ -455,7 +458,7 @@ class Compiler(object):
         # let* will evaluate the init forms in the new env sequencially
         names = []
         vals = []
-        
+
         while isinstance(bindings, pair):
             binding = bindings.first
             if not isinstance(binding, pair) or \
@@ -469,7 +472,7 @@ class Compiler(object):
             vals.append(val)
 
             bindings = bindings.rest
-        
+
         if bindings is not None:
             raise SyntaxError("Invalid bindings for let* expression: %s" % bindings)
 
@@ -487,8 +490,8 @@ class Compiler(object):
             bdr.emit('call', 0)
             if not keep:
                 bdr.emit('pop')
-        
-        
+
+
     def generate_define(self, bdr, expr, keep=True, tail=False):
         if expr is None:
             raise SyntaxError("Empty define expression")
@@ -497,7 +500,7 @@ class Compiler(object):
         # SymbolClosure now has no effect, only as normal symbol
         if isinstance(var, SymbolClosure):
             var = var.expression
-        
+
         if isinstance(var, pair):
             gen = self.generate_lambda
             val = pair(var.rest, expr.rest)
@@ -583,7 +586,7 @@ class Compiler(object):
                 bdr.emit('push_false')
             if tail:
                 bdr.emit('ret')
-                
+
         bdr.def_label(lbl_end)
 
     def generate_and(self, bdr, expr, keep=True, tail=False):
@@ -610,7 +613,7 @@ class Compiler(object):
                 bdr.emit('push_true')
             if tail:
                 bdr.emit('ret')
-                
+
         bdr.def_label(lbl_end)
 
     def generate_define_syntax(self, bdr, expr, keep=True, tail=False):
@@ -626,7 +629,7 @@ class Compiler(object):
             raise SyntaxError("Expecting syntax-rules, but got %s" % expr.first)
         if expr.rest is not None:
             raise SyntaxError("Extra expressions in define-syntax: %s" % expr.rest)
-        
+
         # define local before constructing the macro, so that recursive macro
         # can be supported
         idx = bdr.def_local(name.name)
@@ -676,7 +679,7 @@ class Compiler(object):
             init_spec = init_spec.rest
         if init_spec is not None:
             raise SyntaxError("Invalid init specs for do expression")
-            
+
         for val in init_vals:
             self.generate_expr(bdr, val, keep=True, tail=False)
 
@@ -724,7 +727,7 @@ class Compiler(object):
             if not first:
                 bdr.emit('pop')
                 first = False
-            
+
             cond_expr = expr.first
             if not isinstance(cond_expr, pair):
                 raise SyntaxError("Invalid cond clause: %s" % cond_expr)
@@ -748,7 +751,7 @@ class Compiler(object):
                     else:
                         self.generate_body(bdr, body, keep=True, tail=False)
                 break
-            
+
             else:
                 self.generate_expr(bdr, pred, keep=True, tail=False)
                 if body is None:
@@ -768,10 +771,10 @@ class Compiler(object):
                         bdr.emit('goto_if_false', lbl_next)
                         self.generate_body(bdr, body, keep=True, tail=False)
                 bdr.emit('goto', lbl_end)
-                    
+
         if expr is not None:
             raise SyntaxError("Extra garbage expression in cond expression: %s" % expr)
-        
+
         bdr.def_label(lbl_next)
         bdr.emit('push_nil')
         bdr.def_label(lbl_end)
