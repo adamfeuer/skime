@@ -29,7 +29,7 @@ class Parser(object):
         expr = self.parse_expr()
         self.skip_all()
         if self.more():
-            self.report_error("Expecting end of code, but more code is got")
+            self.report_error("Expected end of file, but got extra input")
         return expr
 
 
