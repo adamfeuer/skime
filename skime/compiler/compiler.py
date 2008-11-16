@@ -200,6 +200,74 @@ class Compiler(object):
             raise CompileError("Expecting atom or list, but got %s" % expr)
 
     def generate_if_expr(self, bdr, expr, keep=True, tail=False):
+        """
+        Generates bytecode for if expression.
+
+        To understand how it works consider the
+        following Scheme code:
+
+        (if (> 3 8) 10 14)
+
+        Results in the following instructions:
+        
+        literals:
+        0: 3
+        1: 8
+        2: 14
+        3: 10
+
+        instructions:
+        --------------------------------------------------
+        0000         push_literal literal=0
+        0002         push_literal literal=1
+        0004           push_local idx: 6, name: >
+        0006                 call argc=2
+        0008    goto_if_not_false ip=0x000E
+        000A         push_literal literal=2
+        000C                 goto ip=0x0010
+        000E         push_literal literal=3
+        0010         ...
+
+        If expression in this example has condition expression,
+        "then" clause and "else" clause. It is turned into two
+        jump instructions and three
+        instructions (or sequences instructions in more complex
+        cases), one for condition expression,
+        one for "then" clause and one for "else" clause.
+
+        In the example above condition expression is (> 3 8) which
+        results into instructions
+
+        0000         push_literal literal=0
+        0002         push_literal literal=1
+        0004           push_local idx: 6, name: >
+        0006                 call argc=2
+
+        Then goto_if_not_false instruction is used to jump to "then"
+        clause if value on top of the stack (result of evaluating
+        of 
+
+        0008    goto_if_not_false ip=0x000E
+
+        jumps to instruction at 0x000E if value on top of the stack
+        is not false.
+
+        0x000E is the value of "then" clause that pushes 10 on top
+        of the stack in this example:
+
+        000E         push_literal literal=3
+
+        10 comes from 3rd literal in literals frame.
+
+        if jump at 0008 did not happen, instruction at
+        000A is executed:
+
+        000A         push_literal literal=2
+
+        it pushes 14 (2nd slot in literals frame) onto the stack.
+        14 is the value of "else" clause in this example. Then
+        to jump over "then" clause we use goto instruction.
+        """
         if expr is None:
             raise SyntaxError("Missing condition expression in 'if'")
             
